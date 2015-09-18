@@ -1,5 +1,8 @@
 *.class
+
+# Gradle
 .gradle
+build
 
 # IDE
 .idea

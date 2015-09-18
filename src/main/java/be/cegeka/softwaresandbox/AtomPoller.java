@@ -19,25 +19,6 @@ import static java.lang.Thread.sleep;
 
 public class AtomPoller {
 
-    public AtomPoller() throws IOException, InterruptedException {
-        Link last = null;
-
-        while (last == null) {
-            last = getLastLink("http://127.0.0.1:2113/streams/fiangular");
-            if(last == null) {
-                sleep(1000);
-            }
-        }
-
-        while (true) {
-            Link current = readPrevious(last);
-            if (current.getHref() == last.getHref()) {
-                sleep(1000);
-            }
-            last = current;
-        }
-    }
-
     private Link getLastLink(String url) throws IOException {
         Feed feed = getFeed("admin", "changeit", url);
         Link last = feed.getLink("last");
@@ -46,9 +27,9 @@ public class AtomPoller {
 
     private Feed getFeed(String username, String password, String url) throws IOException {
         URLConnection uc = new URL(url).openConnection();
-//        String userpass = username + ":" + password;
-//        String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
-//        uc.setRequestProperty("Authorization", basicAuth);
+        String userpass = username + ":" + password;
+        String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+        uc.setRequestProperty("Authorization", basicAuth);
         uc.setRequestProperty("Accept", "application/atom+xml");
 
         Abdera abdera = new Abdera();
@@ -58,18 +39,41 @@ public class AtomPoller {
     }
 
 
-    private Link readPrevious(Link link) throws IOException {
+    private Link readPrevious(Link link, EventHandler handler) throws IOException {
         Feed feed = getFeed("admin", "changeit", link.getHref().toString());
         List<Entry> entries = new ArrayList(feed.getEntries());
         Collections.reverse(entries);
         for (Entry entry : entries) {
-            System.out.println(entry.getTitle());
+            handler.handle(entry.getTitle());
         }
         Link previous = feed.getLink("previous");
         return previous == null ? link : previous;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        new AtomPoller();
+        new AtomPoller().startPolling(new ConsoleOutputEventHandler());
+    }
+
+    private void startPolling(EventHandler handler) {
+        try {
+            Link last = null;
+
+            while (last == null) {
+                last = getLastLink("http://127.0.0.1:2113/streams/fiangular");
+                if (last == null) {
+                    sleep(1000);
+                }
+            }
+
+            while (true) {
+                Link current = readPrevious(last, handler);
+                if (current.getHref() == last.getHref()) {
+                    sleep(1000);
+                }
+                last = current;
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

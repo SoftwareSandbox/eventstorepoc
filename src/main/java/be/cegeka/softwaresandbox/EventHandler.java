@@ -1,5 +1,7 @@
 package be.cegeka.softwaresandbox;
 
+import org.apache.abdera.model.Content;
+
 interface EventHandler {
-    void handle(String event);
+    void handle(Content event);
 }

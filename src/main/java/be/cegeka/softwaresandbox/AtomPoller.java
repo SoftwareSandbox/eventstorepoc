@@ -1,10 +1,7 @@
 package be.cegeka.softwaresandbox;
 
 import org.apache.abdera.Abdera;
-import org.apache.abdera.model.Document;
-import org.apache.abdera.model.Entry;
-import org.apache.abdera.model.Feed;
-import org.apache.abdera.model.Link;
+import org.apache.abdera.model.*;
 import org.apache.abdera.parser.Parser;
 
 import java.io.IOException;
@@ -20,31 +17,18 @@ import static java.lang.Thread.sleep;
 public class AtomPoller {
 
     private Link getLastLink(String url) throws IOException {
-        Feed feed = getFeed("admin", "changeit", url);
+        Feed feed = getFeed(url);
         Link last = feed.getLink("last");
         return last == null ? feed.getLink("self") : last;
     }
 
-    private Feed getFeed(String username, String password, String url) throws IOException {
-        URLConnection uc = new URL(url).openConnection();
-        String userpass = username + ":" + password;
-        String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
-        uc.setRequestProperty("Authorization", basicAuth);
-        uc.setRequestProperty("Accept", "application/atom+xml");
-
-        Abdera abdera = new Abdera();
-        Parser parser = abdera.getParser();
-        Document<Feed> doc = parser.parse(uc.getInputStream(), url.toString());
-        return doc.getRoot();
-    }
-
-
     private Link readPrevious(Link link, EventHandler handler) throws IOException {
-        Feed feed = getFeed("admin", "changeit", link.getHref().toString());
+        Feed feed = getFeed(link.getHref().toString());
         List<Entry> entries = new ArrayList(feed.getEntries());
         Collections.reverse(entries);
         for (Entry entry : entries) {
-            handler.handle(entry.getTitle());
+            Entry detail = getEntry(entry.getLink("alternate").getHref().toString());
+            handler.handle(detail.getContentElement());
         }
         Link previous = feed.getLink("previous");
         return previous == null ? link : previous;
@@ -76,4 +60,28 @@ public class AtomPoller {
             e.printStackTrace();
         }
     }
+
+    private Feed getFeed(String url) throws IOException {
+        return getElement(url);
+    }
+
+    private Entry getEntry(String url) throws IOException {
+        return getElement(url);
+    }
+
+    private <T extends Element> T getElement(String url) throws IOException {
+        String username = "admin";
+        String password = "changeit";
+        URLConnection uc = new URL(url).openConnection();
+        String userpass = username + ":" + password;
+        String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+        uc.setRequestProperty("Authorization", basicAuth);
+        uc.setRequestProperty("Accept", "application/atom+xml");
+
+        Abdera abdera = new Abdera();
+        Parser parser = abdera.getParser();
+        Document<T> doc = parser.parse(uc.getInputStream(), url);
+        return doc.getRoot();
+    }
+
 }

@@ -60,8 +60,8 @@ public class AtomPoller {
 
     private Link readPrevious(Link link) throws IOException {
         Feed feed = getFeed("admin", "changeit", link.getHref().toString());
-        List<Entry> entries = feed.getEntries();
-        Collections.reverse(new ArrayList(entries));
+        List<Entry> entries = new ArrayList(feed.getEntries());
+        Collections.reverse(entries);
         for (Entry entry : entries) {
             System.out.println(entry.getTitle());
         }

@@ -1,4 +1,4 @@
-package be.cegeka.softwaresandbox;
+package be.swsb.poller;
 
 import org.apache.abdera.Abdera;
 import org.apache.abdera.model.*;

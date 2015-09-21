@@ -16,7 +16,9 @@ dependencies {
     compile (
         'org.apache.abdera:abdera-core:' + abderaVersion,
         'org.apache.abdera:abdera-parser:' + abderaVersion,
-        'org.glassfish.jersey.core:jersey-client:2.21'
+        'org.glassfish.jersey.core:jersey-client:2.21',
+        'org.glassfish.jersey.media:jersey-media-moxy:2.21'
+        // 'org.glassfish.jersey.media:jersey-media-json-jackson:2.21'
     )
 
 }

@@ -25,7 +25,7 @@ public class AtomPoster {
                 .register(JacksonFeature.class)
                 .build();
         Response response = jerseyClient
-                .target("http://localhost:2113/streams/"+atomEvent.getEventType())
+                .target("http://localhost:2113/streams/fiangular")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .header("ES-EventId", atomEvent.getUUID())
                 .header("ES-EventType", atomEvent.getEventType())
